@@ -3,7 +3,7 @@ clear all;
 clc
 
 time = 0;
-endtime = 20;
+endtime = 90;
 global dt;
 dt = 0.1;
 nSteps = ceil((endtime - time)/dt);
@@ -15,7 +15,10 @@ result.xd=[];
 result.xEst=[];
 result.uncertainty=[];
 result.time=[];
+result.PEst=[];
 result.error_lm=[];
+result.error_robot=[];
+result.error_robot_dead=[];
 %state vector [x y yaw]'
 xEst = [0 0 0]';
 global PoseSize;PoseSize=3;
@@ -93,16 +96,25 @@ end
    
    d = LM - xEst(4:5);
    d_error = d'*d;
+   d_robot = xTrue(1:2)-xEst(1:2);
+   d_robot_error = d_robot'*d_robot;
+   d_robot_dead = xTrue(1:2)-xd(1:2);
+   d_robot_deaderror=d_robot_dead'*d_robot_dead;
    error_lm = sqrt(d_error);
+   error_robot = sqrt(d_robot_error);
+   error_robot_dead= sqrt(d_robot_deaderror);
    [Area]=RegionofUncertainty(PEst);
    
    result.time=[result.time; time];
    result.xTrue=[result.xTrue; xTrue'];
    result.xd=[result.xd; xd'];
    result.u=[result.u; u];
+   result.PEst=[result.PEst; PEst(4,4) PEst(4,5) PEst(5,4) PEst(5,5) ];
    result.uncertainty=[result.uncertainty; Area];
    result.xEst=[result.xEst; xEst(1:3)'];
    result.error_lm=[result.error_lm; error_lm];
+   result.error_robot=[result.error_robot; error_robot];
+   result.error_robot_dead=[result.error_robot_dead; error_robot_dead];
    %result.u=[result.u; u'];
    
       %Animation (remove some flames)
@@ -111,7 +123,7 @@ end
         %movcount=movcount+1;
         %mov(movcount) = getframe(gcf);% ??????????????????
     end
-    %animation2(PEst,time);
+   % animation2(PEst, time);
     
    
 end

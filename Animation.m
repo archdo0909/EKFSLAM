@@ -2,7 +2,7 @@ function Animation(result,xTrue,LM,z,xEst,PEst)
 figure(1);
 hold off;
 plot(result.xTrue(:,1),result.xTrue(:,2),'.b');hold on;
-plot(LM(1,1),LM(2,1),'diamond','MarkerSize',10);hold on;
+plot(LM(1,1),LM(2,1),'pk','MarkerSize',10);hold on;
 % if~isempty(z)
 %     for iz=1:length(z(:,1))
 %         ray=[xTrue(1:2)';z(iz,3:4)];                %%% [ x  y ]
@@ -13,7 +13,7 @@ plot(LM(1,1),LM(2,1),'diamond','MarkerSize',10);hold on;
 % for il=1:GetnLM(xEst)
 %     plot(xEst(4+2*(il-1)),xEst(5+2*(il-1)),'.c');hold on;
 % end
-plot(xEst(4),xEst(5),'.c');hold on;
+plot(xEst(4),xEst(5),'diamond','MarkerSize',10);hold on;
 %plot(zl(1,:),zl(2,:),'.b');hold on;
 %ShowErrorEllipse(xEst,PEst);
 ShowErrorEllipse_LM(xEst,PEst);

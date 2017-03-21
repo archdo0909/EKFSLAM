@@ -1,5 +1,5 @@
-function animation2(PEst,i)
-figure(2);
+function animation2(PEst,time)
+figure(123);
 Pxy = PEst(4:5,4:5);
     [eigvec, eigval]=eig(Pxy);
     
@@ -16,10 +16,10 @@ chi=9.21;
 a=sqrt(eigval(bigind,bigind)*chi);
 b=sqrt(eigval(smallind,smallind)*chi);
 y = a*b*pi;
-plot(i, y,'-b','linewidth', 1);hold on;
-title('Uncertainty regions of landmark','fontsize', 16, 'fontname', 'times');
-xlabel('Number of movements','fontsize', 16, 'fontname', 'times');
-ylabel('Error (m^2)', 'fontsize', 16, 'fontname', 'times');
+plot(time, y,'.r');hold on;
+%title('Uncertainty regions of landmark','fontsize', 16, 'fontname', 'times');
+%xlabel('Number of movements','fontsize', 16, 'fontname', 'times');
+%ylabel('Error (m^2)', 'fontsize', 16, 'fontname', 'times');
 axis equal;
 grid on;
 drawnow;
