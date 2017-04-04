@@ -16,7 +16,8 @@ function H = JacobianH_com(q,delta,x)
 %     H = [ H_r H_i ]*[ F_x; F_y ];
 
     %sq=sqrt(q);
-    G=[delta(2)./q -delta(1)./q -1./q -delta(2)./q delta(1)./q];
+    G=[delta(2)./q -delta(1)./q -1./q -delta(2)./q delta(1)./q;
+       -delta(2)./q delta(1)./q 1./q delta(2)./q -delta(1)./q];
    % G=[  0          0       0       0       0;
     %    delta(2) -delta(1) -1 -delta(2) delta(1)];   
     %G=G./q;
