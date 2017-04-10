@@ -27,6 +27,8 @@ global LMSize;LMSize=2;
 %True State
 xTrue = xEst;
 
+
+
 %Dead Reckoning State
 xd = xTrue;
  
@@ -36,6 +38,12 @@ R = diag([0.01 0.01 toradian(1.5)]).^2;
 %Covariance Matrix for Q
 % global Q;
 % Q = diag([toradian(15) toradian(30)]).^2;
+
+
+
+
+
+
 global Q;
 %Q = diag([1.1 toradian(5)]).^2;
 Q = toradian(20)^2;
@@ -49,6 +57,7 @@ Qsigma = diag([0.1 toradian(25)]).^2;
 n = 1;
 %Landmark position [x y]
 LM = [0  10]'; 
+LM_I = 10000;
 MAX_RANGE = 30; 
 MAX_ANGLE = 90 * pi/180;
 alpha = 1;
