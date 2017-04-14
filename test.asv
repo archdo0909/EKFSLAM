@@ -3,7 +3,7 @@ clear all;
 clc
 
 time = 0;
-endtime = 100;
+endtime = 40;
 time_ob = 0;
 time_vel = 0;
 time_yaw = 0;
@@ -22,7 +22,7 @@ xd=xTrue;
 LM = [0 1;
       0.5 0.5];
 u = [0 0]';  
-LM_I = 100000;  
+LM_I = 1000000;  
 %len = 15;
 result.u = [];
 result.xTrue = [];
@@ -32,7 +32,8 @@ cnt=0;
 for i = 1:nSteps
     
     if time_vel >= timeForMv
-       u = control_new(time_vel, time_yaw); 
+       time_vel = 0;
+       u = control_new(time_vel, time_yaw) 
        [z,xTrue,IN,xd,u,t_max]=Observation_com(xTrue,xd,u,LM,LM_I);
        result.IN=[result.IN; IN];
        time_ob = time_ob + t_max;
@@ -41,21 +42,18 @@ for i = 1:nSteps
            time_vel = 0;
        else
            time = time + dt;
-           u = control_new(time_vel, time_yaw);
-           %result.u=[result.u; u' time]; 
-           result.xTrue = [result.xTrue; xTrue' time];
        end
              
     else
        time = time + dt;
-       time_ob = time_ob + dt;
+       time_on = time_ob + dt;
        time_vel = time_vel + dt;
        time_yaw = cnt*timeForMv + time_vel; 
        u = control_new(time_vel, time_yaw);
        xTrue = motion(xTrue,u);
        result.xTrue=[result.xTrue; xTrue' time];
        result.u=[result.u; u' time]; 
-       %Animation_test(result,LM)
+        %Animation_test(result,LM)
     end
     
      

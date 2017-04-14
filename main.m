@@ -3,6 +3,7 @@ clear all;
 clc
 
 time = 0;
+time_ob = 3;
 endtime = 90;
 global dt;
 dt = 0.1;
@@ -73,9 +74,16 @@ Ssigma = 10;
 tic;
 % Main loop
 for i = 1: nSteps
-   time = time + dt;
+   
+    if time_ob > 3
+        time_ob = 0;
+    end
+    
+    time = time + dt;
+   
    % Input
-   u = control(time);
+   %u = control(time);
+   u = control_new(time, time_ob);
    %Observation
    %[z,xTrue,xd,u]=Observation(xTrue,xd,u,LM,MAX_R NGE);
    [z, xTrue,xd,u,t_max]=Observation_com(xTrue,xd,u,LM,len);
