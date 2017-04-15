@@ -28,6 +28,7 @@ result.u = [];
 result.xTrue = [];
 result.t_max = [];
 result.IN=[];
+result.xEst=[];
 cnt=0;
 cnt_ob=0;
 for i = 1:nSteps
@@ -63,6 +64,11 @@ for i = 1:nSteps
        %Animation_test(result,LM)
     end
     
+    % --------EKF SLAM-----------
+    % Predict
+    xEst = motion(xEst, u);
+    result.xEst = [result.xEst; xEst'];
+    
      
     %result.t_max = [result.t_max; t_max time];
     %result.IN=[result.IN; IN];
@@ -70,6 +76,7 @@ for i = 1:nSteps
 end
 %csvwrite('t_max.csv', result.t_max);
 csvwrite('u.csv', result.u)
-csvwrite('IN.csv', result.IN)
+%csvwrite('IN.csv', result.IN)
 csvwrite('xTrue.csv', result.xTrue);
+csvwrite('xEst.csv', result.xEst);
 

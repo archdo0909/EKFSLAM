@@ -87,6 +87,9 @@ for i = 1: nSteps
    %Observation
    %[z,xTrue,xd,u]=Observation(xTrue,xd,u,LM,MAX_R NGE);
    [z, xTrue,xd,u,t_max]=Observation_com(xTrue,xd,u,LM,len);
+  
+   
+   
    %------ EKF SLAM -------
    % Predict
    xEst = motion(xEst, u);
