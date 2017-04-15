@@ -12,8 +12,6 @@ t_max = 0;
 global dt;
 global PoseSize;PoseSize=3;
 global LMSize;LMSize=2;
-global Qsigma
-Qsigma = diag([0.1 toradian(25)]).^2;
 dt = 0.1;
 nSteps = ceil((endtime - time)/dt);
 xEst=[0 0 0]';
@@ -22,21 +20,38 @@ xd=xTrue;
 LM = [0 1;
       0.5 0.5];
 u = [0 0]';  
+PEst = eye(3);
+initP = eye(2)*1000;
 LM_I = 100000;  
 %len = 15;
 result.u = [];
 result.xTrue = [];
 result.t_max = [];
+result.xd = [];
+result.uncertainty=[];
+result.PEst=[];
 result.IN=[];
 result.xEst=[];
 cnt=0;
 cnt_ob=0;
+
+R = diag([0.01 0.01 toradian(1.5)]).^2;
+global Q;
+%Q = diag([1.1 toradian(5)]).^2;
+Q = toradian(20)^2;
+global Qsigma
+Qsigma = diag([0.1 toradian(25)]).^2;
+PEst = zeros(3,3);
+global Ssigma
+%Ssigma = 10^2;
+Ssigma = 10;
+global Threshold_Dis
+Threshold_Dis = 1.5;
 for i = 1:nSteps
-    
     if time_vel >= timeForMv
        if cnt_ob == 0 
            u = control_new(time_vel, time_yaw); 
-           [z,xTrue,IN,xd,u,t_max]=Observation_com(xTrue,xd,u,LM,LM_I);
+           [z,xTrue,IN,xd,u,t_max]=Observation_MultiCom(xTrue,xd,u,LM,LM_I);
            result.IN=[result.IN; IN];
            time_ob = time_ob + t_max;
            cnt = cnt + 1;
@@ -68,8 +83,19 @@ for i = 1:nSteps
     % Predict
     xEst = motion(xEst, u);
     result.xEst = [result.xEst; xEst'];
+    [G,Fx]=JacobianF(xEst, u);
+    PEst = G'*PEst*G + Fx'*R*Fx;
     
-     
+    
+    % Update
+    for iz=1:length(z(:,1))
+        zl=CalcRSPosiFromZ(xEst,z(iz,:));
+        xAug=[xEst;zl];
+        PAug=[PEst zeros(length(xEst), LMSize);
+              zeros(LMSize, length(xEst)) initP];
+          
+          
+    end
     %result.t_max = [result.t_max; t_max time];
     %result.IN=[result.IN; IN];
     %Animation_test(result,LM)
