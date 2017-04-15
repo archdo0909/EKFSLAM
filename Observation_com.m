@@ -15,11 +15,12 @@ function [z,x,IN,xd,u,t_max]=Observation_com(x,xd,u,LM,I)
       %localLM = HomogeneousTransformation2D(LM(1:2)'-x(1:2)',yaw');
       localLM = HomogeneousTransformation2D(LM(iz,:)'-x(1:2)',yaw');
       d = norm(localLM);
+      
       % 8cm * 8cm = 0.08 * 0.08 = 0.08 * 0.08 m^2 = 0.0064
       % 4 * pi * d ^ 24
       
-      i = I * 0.0064 / (4 *pi * d^2); %%%cosin(theta) nowhere
-      %i = 50;
+      %i = I * 0.0064 / (4 *pi * d^2); %%%cosin(theta) nowhere
+      i = 500;
       %z = PI2PI(atan2(localLM(2),localLM(1)));
       if i < 1000
         t = ceil(1000 / i);
@@ -27,10 +28,10 @@ function [z,x,IN,xd,u,t_max]=Observation_com(x,xd,u,LM,I)
         t = 1;
       end
       
-      if t_max < t
+      if t > t_max
           t_max = t;
       end
-      IN = [IN; i];
+      IN = [IN; i t_max];
       z = [z; PI2PI(atan2(localLM(2), localLM(1)))];
     
     end

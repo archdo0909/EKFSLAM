@@ -3,7 +3,7 @@ clear all;
 clc
 
 time = 0;
-endtime = 100;
+endtime = 50;
 time_ob = 0;
 time_vel = 0;
 time_yaw = 0;
@@ -29,23 +29,28 @@ result.xTrue = [];
 result.t_max = [];
 result.IN=[];
 cnt=0;
+cnt_ob=0;
 for i = 1:nSteps
     
     if time_vel >= timeForMv
-       u = control_new(time_vel, time_yaw); 
-       [z,xTrue,IN,xd,u,t_max]=Observation_com(xTrue,xd,u,LM,LM_I);
-       result.IN=[result.IN; IN];
-       time_ob = time_ob + t_max;
-       cnt = cnt + 1;
-       if time >= time_ob
-           time_vel = 0;
+       if cnt_ob == 0 
+           u = control_new(time_vel, time_yaw); 
+           [z,xTrue,IN,xd,u,t_max]=Observation_com(xTrue,xd,u,LM,LM_I);
+           result.IN=[result.IN; IN];
+           time_ob = time_ob + t_max;
+           cnt = cnt + 1;
+           cnt_ob = cnt_ob + 1;
        else
-           time = time + dt;
-           u = control_new(time_vel, time_yaw);
-           %result.u=[result.u; u' time]; 
-           result.xTrue = [result.xTrue; xTrue' time];
-       end
-             
+           if time >= time_ob
+               time_vel = 0;
+               cnt_ob = 0;
+           else
+               time = time + dt;
+               u = control_new(time_vel, time_yaw);
+               %result.u=[result.u; u' time]; 
+               result.xTrue = [result.xTrue; xTrue' time];
+           end
+       end      
     else
        time = time + dt;
        time_ob = time_ob + dt;
