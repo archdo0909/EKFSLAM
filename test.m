@@ -93,9 +93,36 @@ for i = 1:nSteps
         xAug=[xEst;zl];
         PAug=[PEst zeros(length(xEst), LMSize);
               zeros(LMSize, length(xEst)) initP];
+         
+        mdist=[]; %The list for Mahalanobis distance
+        for il=1:GetnLM(xAug)
+            if il==GetnLM(xAug)
+                mdist=[mdist alpha];
+            else
+                lm=xAug(4+2*(il-1):5+2*(il-1));
+                [y,S,H]=CalcInnovation(lm,xEst,PEst,z,LMId)
+                mdist=[mdist y'*inv(S)*y];
+            end
+        end    
           
-          
+        [C, I] = min(mdist);
+        
+        if I==GetnLM(xAug)
+           %disp("New LM")
+           xEst=xAug;
+           PEst=PAug;
+        end
+        
+        lm=xEst(4+2*(I-1):5+2*(I-1));
+        [y,S,H]=CalcInnovation(lm,xEst,PEst,z(iz,1:2),I);
+        K = PEst*H'*inv(S);
+        xEst=xEst+K*y;
+        PEst=(eye(size(xEst,1)) - K*H)*PEst;
     end
+    
+    xEst(3)=PI2PI(xEst(3));
+    
+    
     %result.t_max = [result.t_max; t_max time];
     %result.IN=[result.IN; IN];
     %Animation_test(result,LM)
