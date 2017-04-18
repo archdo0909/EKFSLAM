@@ -3,7 +3,6 @@ clear all;
 clc
 
 time = 0;
-time_ob = 3;
 endtime = 90;
 global dt;
 dt = 0.1;
@@ -57,9 +56,7 @@ Qsigma = diag([0.1 toradian(25)]).^2;
 %number of Landmark
 n = 1;
 %Landmark position [x y]
-LM = [0  10;
-      3 12]; 
-LM_I = 10000;
+LM = [0  10];
 MAX_RANGE = 30; 
 MAX_ANGLE = 90 * pi/180;
 alpha = 1;
@@ -75,11 +72,8 @@ tic;
 % Main loop
 for i = 1: nSteps
    
-    if time_ob > 3
-        time_ob = 0;
-    end
-    
-    time = time + dt;
+ 
+   time = time + dt;
    
    % Input
    %u = control(time);
