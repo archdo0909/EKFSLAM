@@ -53,6 +53,7 @@ for i = 1:nSteps
     
     time = time + dt;
     
+    
     u = control_new(time);
     
     xTrue = motion(xTrue, u);

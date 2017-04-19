@@ -3,8 +3,8 @@ function u = control_new(time)
     %T = 10; %[sec]
     
      V = 1.0; %[m/s]
-     %yawrate [rad/s]
-     if (time >= 3 && time <= 3.1)
+     
+     if (time == 3)
          yawrate = 900;
          u = [V toradian(yawrate)]';
      else
