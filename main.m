@@ -27,8 +27,6 @@ global LMSize;LMSize=2;
 %True State
 xTrue = xEst;
 
-
-
 %Dead Reckoning State
 xd = xTrue;
  
@@ -38,10 +36,6 @@ R = diag([0.01 0.01 toradian(1.5)]).^2;
 %Covariance Matrix for Q
 % global Q;
 % Q = diag([toradian(15) toradian(30)]).^2;
-
-
-
-
 
 
 global Q;
@@ -56,7 +50,7 @@ Qsigma = diag([0.1 toradian(25)]).^2;
 %number of Landmark
 n = 1;
 %Landmark position [x y]
-LM = [0  10];
+LM = [0  10]';
 MAX_RANGE = 30; 
 MAX_ANGLE = 90 * pi/180;
 alpha = 1;
@@ -71,19 +65,11 @@ Ssigma = 10;
 tic;
 % Main loop
 for i = 1: nSteps
-   
- 
    time = time + dt;
-   
    % Input
-   %u = control(time);
-   u = control_new(time, time_ob);
+   u = control(time);
    %Observation
-   %[z,xTrue,xd,u]=Observation(xTrue,xd,u,LM,MAX_R NGE);
-   [z, xTrue,xd,u,t_max]=Observation_com(xTrue,xd,u,LM,len);
-  
-   
-   
+   [z, xTrue,xd,u]=Observation_com(xTrue,xd,u,LM,len);
    %------ EKF SLAM -------
    % Predict
    xEst = motion(xEst, u);

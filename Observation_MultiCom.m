@@ -1,14 +1,13 @@
-function [z,x,IN,xd,u,t_max]=Observation_MutiCom(x,z,xd,u,LM,I)
+function [z]=Observation_MultiCom(x,u,LM,I,time)
       
-    global Qsigma;
-    %global Threshold_Dis
-    %global Wsigma;
-    x = motion(x, u);
-    u = u+Qsigma*randn(2,1);
-    xd = motion(xd,u); %Dead reckoning
-    %z=[];
-    IN=[];
-    t_max = -100;
+%     global Qsigma;
+%     %global Threshold_Dis
+%     %global Wsigma;
+      x = motion(x, u);
+%     u = u+Qsigma*randn(2,1);
+%     xd = motion(xd,u); %Dead reckoning
+      z=[];
+%     %t_max = -100;
       
     for iz=1:length(LM(:,1))
       yaw = zeros(3,1);
@@ -20,20 +19,9 @@ function [z,x,IN,xd,u,t_max]=Observation_MutiCom(x,z,xd,u,LM,I)
       % 8cm * 8cm = 0.08 * 0.08 = 0.08 * 0.08 m^2 = 0.0064
       % 4 * pi * d ^ 24
       
-      i = I * 0.0064 / (4 *pi * d^2); %%%cosin(theta) nowhere
-      %i = 500;
-      %z = PI2PI(atan2(localLM(2),localLM(1)));
-      if i < 1000
-        t = ceil(1000 / i);
-      else
-        t = 1;
-      end
+      i = I * 0.0064 / (4 *pi * d^2) * 3; %%%cosin(theta) nowhere
       
-      if t > t_max
-          t_max = t;
-      end
-      
-      z = [z; [d PI2PI(atan2(localLM(2), localLM(1))) LM(iz,:)]];
+      z = [z; [i PI2PI(atan2(localLM(2), localLM(1))) LM(iz,:) time]];
       
     end
       

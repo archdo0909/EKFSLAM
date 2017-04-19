@@ -16,10 +16,9 @@ function H = JacobianH_com(q,delta,x)
 %     H = [ H_r H_i ]*[ F_x; F_y ];
 
     %sq=sqrt(q);
-    G=[delta(2)./q -delta(1)./q -1./q -delta(2)./q delta(1)./q;
-       -delta(2)./q delta(1)./q 1./q delta(2)./q -delta(1)./q];
-   % G=[  0          0       0       0       0;
-    %    delta(2) -delta(1) -1 -delta(2) delta(1)];   
+%     G=[delta(2)./q -delta(1)./q -1./q -delta(2)./q delta(1)./q;
+%        -delta(2)./q delta(1)./q 1./q delta(2)./q -delta(1)./q];
+   G=[delta(2) -delta(1) -1 -delta(2) delta(1)];   
     %G=G./q;
     F_x=horzcat(eye(3), zeros(3,2*GetnLM(x)));
     F_y=horzcat(zeros(2,3),eye(2),zeros(2,2*GetnLM(x)-2));
