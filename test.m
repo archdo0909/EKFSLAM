@@ -51,6 +51,24 @@ for i = 1:nSteps
     
     [z]=Observation_MultiCom(xTrue,u,LM,LM_I,time);
     
+    %--------EKF SLAM----------
+    % Predict
+    xEst = motion(xEst, u);
+    [G,Fx]=JacobianF(xEst,u);
+    Pest = G'*PEst*G + Fx'*R*Fx;
+
+    %Update
+    for iz=1:length(z(:,1))
+        zl = CalcRSPosiFromZ(xEst, z(iz,:));
+        
+        xAug=[xEst; zl];
+        PAug=[PEst zeros(length(xEst), LMSize);
+             zeros(LMSize, length(xEst)) initP];
+
+
+    end
+
+
     
     result.xTrue=[result.xTrue; xTrue' time];
     result.u = [result.u; u' time];

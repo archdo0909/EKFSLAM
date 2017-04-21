@@ -23,7 +23,7 @@ jF = [0 0 -dt*u(1)*sin(x(3));
       0 0 dt*u(1)*cos(x(3));
       0 0 0];
  
-G=eye(length(x))+Fx'*jF*Fx;   %(3x3)
+G=eye(length(x))+Fx'*jF*Fx;   %(3x3)'
 
 
 end

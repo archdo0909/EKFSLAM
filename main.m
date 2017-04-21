@@ -50,7 +50,7 @@ Qsigma = diag([0.1 toradian(25)]).^2;
 %number of Landmark
 n = 1;
 %Landmark position [x y]
-LM = [0  10]';
+LM = [0  10]'; %'
 MAX_RANGE = 30; 
 MAX_ANGLE = 90 * pi/180;
 alpha = 1;
