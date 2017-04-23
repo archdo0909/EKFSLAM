@@ -1,4 +1,4 @@
-function [z]=Observation_MultiCom(x,u,LM,I,time)
+function [z]=Observation_MultiCom(x,u,LM,I)
       
 %     global Qsigma;
 %     %global Threshold_Dis
@@ -19,9 +19,9 @@ function [z]=Observation_MultiCom(x,u,LM,I,time)
       % 8cm * 8cm = 0.08 * 0.08 = 0.08 * 0.08 m^2 = 0.0064
       % 4 * pi * d ^ 24
       
-      i = I * 0.0064 / (4 *pi * d^2) * 3; %%%cosin(theta) nowhere
+      i = I * 0.0001 / (4 * pi * d^2); %%%cosin(theta) nowhere
       
-      z = [z; [i PI2PI(atan2(localLM(2), localLM(1))) LM(iz,:) time]];
+      z = [z; [i PI2PI(atan2(localLM(2), localLM(1))) LM(iz,:)]];
       
     end
       

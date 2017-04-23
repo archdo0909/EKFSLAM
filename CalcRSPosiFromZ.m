@@ -6,5 +6,4 @@ function zl=CalcRSPosiFromZ(x,z,I)
 
     zl=x(1:2) + [L*cos(x(3)+z(2)); L*sin(x(3)+z(2))];
 
-
 end

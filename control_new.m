@@ -4,7 +4,13 @@ function u = control_new(time)
     
      V = 1.0; %[m/s]
      %yawrate [rad/s]
-     if (time >= 3 && time <= 3.1)
+     if (time >= 6 && time <= 6.1)
+         yawrate = 900;
+         u = [V toradian(yawrate)]';
+     elseif (time >= 12 && time <= 12.1)
+         yawrate = 900;
+         u = [V toradian(yawrate)]';
+     elseif (time >= 18 && time <= 18.1)
          yawrate = 900;
          u = [V toradian(yawrate)]';
      else
