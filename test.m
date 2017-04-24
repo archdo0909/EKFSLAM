@@ -3,7 +3,7 @@ clear all;
 clc
 %centimeter scale
 time = 0;
-endtime = 24;
+endtime = 5;
 global dt;
 global PoseSize;PoseSize=3;
 global LMSize;LMSize=2;
@@ -59,9 +59,34 @@ for i = 1:nSteps
     Pest = G'*PEst*G + Fx'*R*Fx;
 
     %Update
-    [PEst, xEst]=Augmented_data_Multicom(z,xEst,PEst,LM_I)
+    for iz=1:length(z(:,1))
+        [PAug, xAug]=Augmented_data_Multicom(z(iz,:),xEst,PEst,LM_I);
+        
+        mdist=[];
+        for il=1:GetnLM(xAug)
+            if il==GetnLM(xAug)
+                mdist=[mdist alpha];
+            else
+                lm=xAug(4+2*(il-1):5+2*(il-1));
+                [y,S,H]=CalcInnovation(lm,xAug,PAug,z(iz,1:2),il);
+                mdist=[mdist y'*inv(S)*y];
+            end
+        end
+        disp(GetnLM(xAug));
+        [C,I]=min(mdist);
+       
+        if I==GetnLM(xAug)
+            xEst=xAug;
+            PEst=PAug;
+        end
+        lm=xEst(4+2*(I-1):5+2*(I-1));
+        [y,S,H]=CalcInnovation(lm,xEst,PEst,z(iz,1:2),I);
+        K = PEst*H'*inv(S);
+        xEst = xEst + K*y;
+        PEst = (eye(size(xEst,1)) - K*H)*PEst;
+    end
     
-    
+    xEst(3)=PI2PI(xEst(3));
     
 %     for iz=1:length(z(:,1))
 %         zl = CalcRSPosiFromZ(xEst, z(iz,:),LM_I);
