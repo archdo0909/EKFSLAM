@@ -26,9 +26,11 @@ function [PAug, xAug]=Augmented_data_Multicom(z,xEst,PEst,LM_I)
     Px = Yx*Px_y;  % ( 2 * 3 or 5 or 7... )
     Ppp = Yx*PEst(1:3,1:3)*Yx' + Yz*Q*Yz' + Ys*Ssigma^2*Ys';
     
-    PAug_1 = horzcat(PEst, Px');
-    PAug_2 = horzcat(Px,Ppp);
-    PAug = vertcat(PAug_1, PAug_2);
+    %PAug_1 = horzcat(PEst, Px');
+    %PAug_2 = horzcat(Px,Ppp);
+    %PAug = vertcat(PAug_1, PAug_2);
+    PAug = [PEst Px';
+            Px Ppp];    
     xAug = [xEst; zl];    
     
 end

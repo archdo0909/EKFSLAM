@@ -3,7 +3,7 @@ clear all;
 clc
 %centimeter scale
 time = 0;
-endtime = 5;
+endtime = 3;
 global dt;
 global PoseSize;PoseSize=3;
 global LMSize;LMSize=2;
@@ -39,7 +39,7 @@ global Ssigma
 Ssigma = 10;
 global Threshold_Dis
 Threshold_Dis = 1.5;
-alpha = 1;
+alpha = 0.05;
 for i = 1:nSteps
     
     time = time + dt;
@@ -68,22 +68,24 @@ for i = 1:nSteps
                 mdist=[mdist alpha];
             else
                 lm=xAug(4+2*(il-1):5+2*(il-1));
-                [y,S,H]=CalcInnovation(lm,xAug,PAug,z(iz,1:2),il);
+                [y,S,H]=CalcInno_Multicom(lm,xAug,PAug,z(iz,1:2),il,LM_I);
                 mdist=[mdist y'*inv(S)*y];
             end
         end
-        disp(GetnLM(xAug));
+        disp(mdist)
         [C,I]=min(mdist);
        
         if I==GetnLM(xAug)
             xEst=xAug;
             PEst=PAug;
+        else
+        
+            lm=xEst(4+2*(I-1):5+2*(I-1));
+            [y,S,H]=CalcInno_Multicom(lm,xEst,PEst,z(iz,1:2),I,LM_I);
+            K = PEst*H'*inv(S);
+            xEst = xEst + K*y;
+            PEst = (eye(size(xEst,1)) - K*H)*PEst;
         end
-        lm=xEst(4+2*(I-1):5+2*(I-1));
-        [y,S,H]=CalcInnovation(lm,xEst,PEst,z(iz,1:2),I);
-        K = PEst*H'*inv(S);
-        xEst = xEst + K*y;
-        PEst = (eye(size(xEst,1)) - K*H)*PEst;
     end
     
     xEst(3)=PI2PI(xEst(3));
