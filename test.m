@@ -27,6 +27,7 @@ result.xd = [];
 result.uncertainty=[];
 result.PEst=[];
 result.xEst=[];
+result.mdist=[];
 R = diag([0.01 0.01 toradian(1.5)]).^2;
 global Q;
 %Q = diag([1.1 toradian(5)]).^2;
@@ -39,7 +40,7 @@ global Ssigma
 Ssigma = 10;
 global Threshold_Dis
 Threshold_Dis = 1.5;
-alpha = 0.05;
+alpha = 55;
 for i = 1:nSteps
     
     time = time + dt;
@@ -72,14 +73,13 @@ for i = 1:nSteps
                 mdist=[mdist y'*inv(S)*y];
             end
         end
-        disp(mdist)
+        dlmwrite('mdist.txt',mdist,'\t')
         [C,I]=min(mdist);
        
         if I==GetnLM(xAug)
             xEst=xAug;
             PEst=PAug;
         else
-        
             lm=xEst(4+2*(I-1):5+2*(I-1));
             [y,S,H]=CalcInno_Multicom(lm,xEst,PEst,z(iz,1:2),I,LM_I);
             K = PEst*H'*inv(S);
@@ -137,7 +137,7 @@ for i = 1:nSteps
     
 end
 DrawGraph(result,LM);
-%csvwrite('t_max.csv', result.t_max);
+csvwrite('mdist.csv', result.mdist);
 %csvwrite('u.csv', result.u);
 %csvwrite('z.csv', result.z);
 %csvwrite('xTrue.csv', result.xTrue);
