@@ -3,7 +3,7 @@ clear all;
 clc
 %centimeter scale
 time = 0;
-endtime = 3;
+endtime = 0.5;
 global dt;
 global PoseSize;PoseSize=3;
 global LMSize;LMSize=2;
@@ -30,7 +30,7 @@ result.xEst=[];
 result.mdist=[];
 R = diag([0.01 0.01 toradian(1.5)]).^2;
 global Q;
-%Q = diag([1.1 toradian(5)]).^2;
+%Q = diag([10 toradian(30)]).^2;
 Q = toradian(20)^2;
 global Qsigma
 Qsigma = diag([0.1 toradian(25)]).^2;
@@ -40,7 +40,7 @@ global Ssigma
 Ssigma = 10;
 global Threshold_Dis
 Threshold_Dis = 1.5;
-alpha = 55;
+alpha = 1;
 for i = 1:nSteps
     
     time = time + dt;
@@ -70,13 +70,16 @@ for i = 1:nSteps
             else
                 lm=xAug(4+2*(il-1):5+2*(il-1));
                 [y,S,H]=CalcInno_Multicom(lm,xAug,PAug,z(iz,1:2),il,LM_I);
+                mdistance=y'*inv(S)*y;
+                disp(mdistance);
                 mdist=[mdist y'*inv(S)*y];
             end
         end
-        dlmwrite('mdist.txt',mdist,'\t')
+        %dlmwrite('mdist.txt',mdist,'\t')
         [C,I]=min(mdist);
        
         if I==GetnLM(xAug)
+            disp('New LM');
             xEst=xAug;
             PEst=PAug;
         else
@@ -89,55 +92,19 @@ for i = 1:nSteps
     end
     
     xEst(3)=PI2PI(xEst(3));
-    
-%     for iz=1:length(z(:,1))
-%         zl = CalcRSPosiFromZ(xEst, z(iz,:),LM_I);
-%         
-%         xAug=[xEst; zl];
-%         PAug=[PEst zeros(length(xEst), LMSize);
-%              zeros(LMSize, length(xEst)) initP];
-%         
-%         mdist=[];
-%         for il=1:GetnLM(xAug)
-%             if il==GetnLM(xAug)
-%                 mdist=[mdist alpha];
-%             else
-%                 lm=xAug(4+2*(il-1):5+2*(il-1));
-%                 [y,S,H]=CalcInnovation(lm,xAug,PAug,z(iz,1:2),il);
-%                 mdist=[mdist y'*inv(S)*y];
-%             end
-%         end
-%         
-%         [C,I]=min(mdist);
-%         
-%         if I==GetnLM(xAug)
-%             xEst=xAug;
-%             PEst=PAug;
-%         end
-%         
-%         lm=xEst(4+2*(I-1):5+2*(I-1));
-%         [y,S,H]=CalcInnovation(lm,xEst,PEst,z(iz,1:2),I);
-%         K = PEst*H'*inv(S);
-%         xEst = xEst + K*y;
-%         PEst = (eye(size(xEst,1)) - K*H)*PEst;
-%       
-%     end
-%     
-%     xEst(3)=PI2PI(xEst(3));
-    
-    
+     
     result.xTrue=[result.xTrue; xTrue'];
     result.xd=[result.xd; xd'];
     result.u = [result.u; u'];
-    %result.z = [result.z; z];
+    result.z = [result.z; z];
     result.xEst=[result.xEst; xEst(1:3)'];
     
     %Animation(result,xTrue,LM,z,xEst,zl);
-    Animation2(result,LM);
+    Animation2(result,LM,xEst,PEst);
     
 end
 DrawGraph(result,LM);
-csvwrite('mdist.csv', result.mdist);
+%csvwrite('mdist.csv', result.mdist);
 %csvwrite('u.csv', result.u);
 %csvwrite('z.csv', result.z);
 %csvwrite('xTrue.csv', result.xTrue);
@@ -169,9 +136,14 @@ grid on;
 
 drawnow;
 end
-function Animation2(result,LM)
+function Animation2(result,LM,xEst,PEst)
 hold off;
 plot(result.xTrue(:,1),result.xTrue(:,2),'.b');hold on;
+ShowErrorEllipse(xEst,PEst);
+for il=1:GetnLM(xEst)
+    plot(xEst(4+2*(il-1)),xEst(5+2*(il-1)),'Diamond');hold on;
+end
+ 
 plot(LM(:,1),LM(:,2),'pk','MarkerSize',10);hold on;
 plot(result.xd(:,1),result.xd(:,2),'.k');hold on;
 plot(result.xEst(:,1),result.xEst(:,2),'.r');hold on;
@@ -190,7 +162,7 @@ plot(x(:,1), x(:,2),'-b','linewidth', 4); hold on;
 plot(result.xd(:,1), result.xd(:,2),'-k','linewidth', 2); hold on;
 plot(x(:,3), x(:,4),'-r','linewidth', 4); hold on;
 plot(LM(:,1),LM(:,2),'pk','MarkerSize',10);hold on;
-% for il=1:GetnLM(xEst);
+% for il=1:GetnLM(xEst)
 %     plot(xEst(4+2*(il-1)),xEst(5+2*(il-1)),'Diamond');hold on;
 % end
  

@@ -3,7 +3,7 @@ function [PAug, xAug]=Augmented_data_Multicom(z,xEst,PEst,LM_I)
     global Q
     global Ssigma
     
-    L = sqrt(LM_I/(4*pi*z(1)));
+    L = sqrt(LM_I *10^(-4)*100 /(4*pi*z(1)));
 
     zl=xEst(1:2) + [L*cos(xEst(3)+z(2)); L*sin(xEst(3)+z(2))];
   
@@ -24,8 +24,8 @@ function [PAug, xAug]=Augmented_data_Multicom(z,xEst,PEst,LM_I)
         end 
     end
     Px = Yx*Px_y;  % ( 2 * 3 or 5 or 7... )
-    Ppp = Yx*PEst(1:3,1:3)*Yx' + Yz*Q*Yz' + Ys*Ssigma^2*Ys';
-    
+    %Ppp = Yx*PEst(1:3,1:3)*Yx' + Yz*Q*Yz' + Ys*Ssigma^2*Ys';
+    Ppp = Yx*PEst(1:3,1:3)*Yx'+Yz*Q*Yz';
     %PAug_1 = horzcat(PEst, Px');
     %PAug_2 = horzcat(Px,Ppp);
     %PAug = vertcat(PAug_1, PAug_2);
