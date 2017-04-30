@@ -3,17 +3,20 @@ clear all;
 clc
 %centimeter scale
 time = 0;
-endtime = 0.5;
+endtime = 10;
+xEst=[0 0 0]';
 global dt;
-global PoseSize;PoseSize=3;
+global PoseSize;PoseSize=length(xEst);
 global LMSize;LMSize=2;
 dt = 0.1;
 nSteps = ceil((endtime - time)/dt);
-xEst=[0 0 0]';
+%True State
 xTrue=xEst;
+%Dead Reckoning State
 xd=xTrue;
-LM = [2 4;
-      4 4];
+
+LM = [1 4;
+      4 6];
 u = [0 0]';  
 PEst = eye(3);
 initP = eye(2)*1000;
@@ -31,10 +34,12 @@ result.mdist=[];
 R = diag([0.01 0.01 toradian(1.5)]).^2;
 global Q;
 %Q = diag([10 toradian(30)]).^2;
-Q = toradian(20)^2;
+Q = toradian(15)^2;
 global Qsigma
-Qsigma = diag([0.1 toradian(25)]).^2;
+Qsigma = diag([0.1 toradian(18)]).^2;
 %PEst = zeros(3,3);
+global Rsigma
+Rsigma=diag([0.1 toradian(1)]).^2;
 global Ssigma
 %Ssigma = 10^2;
 Ssigma = 10;
@@ -61,8 +66,11 @@ for i = 1:nSteps
 
     %Update
     for iz=1:length(z(:,1))
-        [PAug, xAug]=Augmented_data_Multicom(z(iz,:),xEst,PEst,LM_I);
-        
+        %[PAug, xAug]=Augmented_data_Multicom(z(iz,:),xEst,PEst,LM_I);
+        zl=CalcRSPosiFromZ(xEst,z(iz,:),LM_I);
+        xAug=[xEst;zl];
+        PAug=[PEst zeros(length(xEst),LMSize);
+              zeros(LMSize,length(xEst)) initP];
         mdist=[];
         for il=1:GetnLM(xAug)
             if il==GetnLM(xAug)

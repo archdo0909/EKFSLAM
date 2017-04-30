@@ -3,6 +3,7 @@ function [z]=Observation_MultiCom(x,u,LM,I)
 %     global Qsigma;
 %     %global Threshold_Dis
 %     %global Wsigma;
+      global Rsigma;
       x = motion(x, u);
 %     u = u+Qsigma*randn(2,1);
 %     xd = motion(xd,u); %Dead reckoning
@@ -18,10 +19,10 @@ function [z]=Observation_MultiCom(x,u,LM,I)
       
       % 8cm * 8cm = 0.08 * 0.08 = 0.08 * 0.08 m^2 = 0.0064
       % 4 * pi * d ^ 24
+      noise = Rsigma*randn(2,1);
+      i = I *100*10^(-4) / (4 * pi * (d+noise(1))^2); %%%cosin(theta) nowhere
       
-      i = I *100*10^(-4) / (4 * pi * d^2); %%%cosin(theta) nowhere
-      
-      z = [z; [i PI2PI(atan2(localLM(2), localLM(1))) LM(iz,:)]];
+      z = [z; [i PI2PI(atan2(localLM(2), localLM(1))+noise(2)) LM(iz,:)]];
       
     end
       
