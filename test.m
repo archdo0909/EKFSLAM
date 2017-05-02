@@ -16,7 +16,6 @@ xTrue=xEst;
 xd=xTrue;
 
 LM = [1 4;
-      4 6
       3 3];
 u = [0 0]';  
 PEst = eye(3);
@@ -34,18 +33,15 @@ result.xEst=[];
 result.mdist=[];
 R = diag([0.2 0.2 toradian(1)]).^2;
 global Q;
-Q = diag([3 toradian(15)]).^2;
-%Q = toradian(15)^2;
+%Q = diag([3 toradian(10)]).^2;
+Q = toradian(3)^2;
 global Qsigma
 Qsigma = diag([0.1 toradian(25)]).^2;
 %PEst = zeros(3,3);
 global Rsigma
 Rsigma=diag([0.1 toradian(1)]).^2;
 global Ssigma
-%Ssigma = 10^2;
-Ssigma = 10;
-global Threshold_Dis
-Threshold_Dis = 1.5;
+Ssigma = 3;
 alpha = 0.5;
 for i = 1:nSteps
     
@@ -68,7 +64,7 @@ for i = 1:nSteps
     %Update
     for iz=1:length(z(:,1))
         [PAug, xAug]=Augmented_data_Multicom(z(iz,:),xEst,PEst,LM_I);
-        %zl=CalcRSPosiFromZ(xEst,z(iz,:),LM_I);
+%         zl=CalcRSPosiFromZ(xEst,z(iz,:),LM_I);
 %         xAug=[xEst;zl];
 %         PAug=[PEst zeros(length(xEst),LMSize);
 %               zeros(LMSize,length(xEst)) initP];
@@ -88,10 +84,11 @@ for i = 1:nSteps
         [C,I]=min(mdist);
        
         if I==GetnLM(xAug)
-            disp(I);
+            %disp(I);
             xEst=xAug;
             PEst=PAug;
         end
+        
             lm=xEst(4+2*(I-1):5+2*(I-1));
             [y,S,H]=CalcInno_Multicom(lm,xEst,PEst,z(iz,1:2),I,LM_I);
             K = PEst*H'*inv(S);
