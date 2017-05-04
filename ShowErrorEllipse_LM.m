@@ -1,6 +1,7 @@
-function ShowErrorEllipse_LM(xEst,PEst)
+function ShowErrorEllipse_LM(xEst,PEst,LM_ID)
     
-Pxy = PEst(4:5,4:5);
+%Pxy = PEst(4:5,4:5);
+	Pxy = PEst;
     [eigvec, eigval]=eig(Pxy);
     
     if eigval(1,1)>=eigval(2,2)
@@ -27,6 +28,6 @@ end
 R=[cos(angle) sin(angle);
    -sin(angle) cos(angle)];
 x=R*x;
-plot(x(1,:)+xEst(4),x(2,:)+xEst(5))
+plot(x(1,:)+xEst(4+2*(LM_ID-1)),x(2,:)+xEst(5+2*(LM_ID-1)))
 
 end

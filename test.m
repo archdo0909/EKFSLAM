@@ -3,7 +3,7 @@ clear all;
 clc
 %centimeter scale
 time = 0;
-endtime = 23;
+endtime = 20;
 xEst=[0 0 0]';
 global dt;
 global PoseSize;PoseSize=length(xEst);
@@ -37,14 +37,14 @@ result.mdist=[];
 R = diag([0.2 0.2 toradian(1)]).^2;
 global Q;     %CalcInno_Multicom, Augmented_data
 Q = diag([0.1 toradian(25)]).^2;
-%Q = toradian(3)^2;
+%Q = toradian(25).^2;
 
 global Qsigma  %Observation_Multicom in Process Noise
 Qsigma = diag([0.1 toradian(25)]).^2;
 global Rsigma  %Observation_Multicom in noise 
 Rsigma=diag([0.1 toradian(1)]).^2;
 global Ssigma
-Ssigma = 3;
+Ssigma = 0.1^2;
 alpha = 1;
 for i = 1:nSteps
     
@@ -66,11 +66,11 @@ for i = 1:nSteps
 
     %Update
     for iz=1:length(z(:,1))
-%         [PAug, xAug]=Augmented_data_Multicom(z(iz,:),xEst,PEst,LM_I);
-        zl=CalcRSPosiFromZ(xEst,z(iz,:),LM_I);
-        xAug=[xEst;zl];
-        PAug=[PEst zeros(length(xEst),LMSize);
-              zeros(LMSize,length(xEst)) initP];
+         [PAug, xAug]=Augmented_data_Multicom(z(iz,:),xEst,PEst,LM_I);
+%         zl=CalcRSPosiFromZ(xEst,z(iz,:),LM_I);
+%         xAug=[xEst;zl];
+%         PAug=[PEst zeros(length(xEst),LMSize);
+%               zeros(LMSize,length(xEst)) initP];
           
         mdist=[];
         for il=1:GetnLM(xAug)
@@ -109,6 +109,7 @@ for i = 1:nSteps
     
     %Animation(result,xTrue,LM,z,xEst,zl);
     Animation2(result,LM,xEst,PEst);
+   
     
 end
 DrawGraph(result,LM);
@@ -150,6 +151,7 @@ plot(result.xTrue(:,1),result.xTrue(:,2),'.b');hold on;
 ShowErrorEllipse(xEst,PEst);
 for il=1:GetnLM(xEst)
     plot(xEst(4+2*(il-1)),xEst(5+2*(il-1)),'Diamond');hold on;
+    ShowErrorEllipse_LM(xEst, PEst(4+2*(il-1):5+2*(il-1),4+2*(il-1):5+2*(il-1)),il);
 end
  
 plot(LM(:,1),LM(:,2),'pk','MarkerSize',10);hold on;

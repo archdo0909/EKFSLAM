@@ -15,10 +15,10 @@ function [z]=Observation_MultiCom(x,u,LM,I)
       % 8cm * 8cm = 0.08 * 0.08 = 0.08 * 0.08 m^2 = 0.0064
       % 4 * pi * d ^ 24
       noise = Rsigma*randn(2,1);
-      %i = I *100*10^(-4) / (4 * pi * (d+noise(1))^2); %%%cosin(theta) nowhere
+      i = I *100*10^(-4) / (4 * pi * (d+noise(1))^2); %%%cosin(theta) nowhere
 
-      %z = [z; [i PI2PI(atan2(localLM(2), localLM(1))+noise(2)) LM(iz,:)]];
-      z=[z; [d PI2PI(atan2(localLM(2),localLM(1))) LM(iz,:)]];
+      z = [z; [i PI2PI(atan2(localLM(2), localLM(1))) LM(iz,:)]];
+      %z=[z; [d PI2PI(atan2(localLM(2),localLM(1))) LM(iz,:)]];
     end
       
 end   
