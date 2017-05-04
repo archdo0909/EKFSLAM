@@ -3,7 +3,7 @@ clear all;
 clc
 %centimeter scale
 time = 0;
-endtime = 20;
+endtime = 23;
 xEst=[0 0 0]';
 global dt;
 global PoseSize;PoseSize=length(xEst);
@@ -15,7 +15,10 @@ xTrue=xEst;
 %Dead Reckoning State
 xd=xTrue;
 
-LM = [1 4;
+LM = [4 4;
+      2 4;
+      2 2;
+      4 2;
       3 3];
 u = [0 0]';  
 PEst = eye(3);
@@ -32,17 +35,17 @@ result.PEst=[];
 result.xEst=[];
 result.mdist=[];
 R = diag([0.2 0.2 toradian(1)]).^2;
-global Q;
-%Q = diag([3 toradian(10)]).^2;
-Q = toradian(3)^2;
-global Qsigma
+global Q;     %CalcInno_Multicom, Augmented_data
+Q = diag([0.1 toradian(25)]).^2;
+%Q = toradian(3)^2;
+
+global Qsigma  %Observation_Multicom in Process Noise
 Qsigma = diag([0.1 toradian(25)]).^2;
-%PEst = zeros(3,3);
-global Rsigma
+global Rsigma  %Observation_Multicom in noise 
 Rsigma=diag([0.1 toradian(1)]).^2;
 global Ssigma
 Ssigma = 3;
-alpha = 0.5;
+alpha = 1;
 for i = 1:nSteps
     
     time = time + dt;
@@ -63,11 +66,11 @@ for i = 1:nSteps
 
     %Update
     for iz=1:length(z(:,1))
-        [PAug, xAug]=Augmented_data_Multicom(z(iz,:),xEst,PEst,LM_I);
-%         zl=CalcRSPosiFromZ(xEst,z(iz,:),LM_I);
-%         xAug=[xEst;zl];
-%         PAug=[PEst zeros(length(xEst),LMSize);
-%               zeros(LMSize,length(xEst)) initP];
+%         [PAug, xAug]=Augmented_data_Multicom(z(iz,:),xEst,PEst,LM_I);
+        zl=CalcRSPosiFromZ(xEst,z(iz,:),LM_I);
+        xAug=[xEst;zl];
+        PAug=[PEst zeros(length(xEst),LMSize);
+              zeros(LMSize,length(xEst)) initP];
           
         mdist=[];
         for il=1:GetnLM(xAug)
