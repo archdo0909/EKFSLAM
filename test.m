@@ -3,7 +3,7 @@ clear all;
 clc
 %centimeter scale
 time = 0;
-endtime = 20;
+endtime = 24;
 xEst=[0 0 0]';
 global dt;
 global PoseSize;PoseSize=length(xEst);
@@ -28,12 +28,14 @@ LM_I = Cal_Intensity_Area(10, 6); % cm, m
 %len = 15;
 result.u = [];
 result.xTrue = [];
-result.z = [];
+result.z = []; 
 result.xd = [];
 result.uncertainty=[];
 result.PEst=[];
 result.xEst=[];
 result.mdist=[];
+result.xEst_up=[];
+%result.PEst_up=[];
 R = diag([0.2 0.2 toradian(1)]).^2;
 global Q;     %CalcInno_Multicom, Augmented_data
 Q = diag([0.1 toradian(25)]).^2;
@@ -46,59 +48,71 @@ Rsigma=diag([0.1 toradian(1)]).^2;
 global Ssigma
 Ssigma = 0.1^2;
 alpha = 1;
+time_ob = 0;
 for i = 1:nSteps
     
-    time = time + dt;
+    time = time + dt
+    time_ob = time_ob + dt;
     
     u = control_new(time);
-    
+
     xTrue = motion(xTrue, u);
     u = u + Qsigma*randn(2,1);
     xd = motion(xd, u); %Dead Reckoning
-     
-    [z]=Observation_MultiCom(xTrue,u,LM,LM_I);
     
-    %--------EKF SLAM----------
-    % Predict
+     % Predict
     xEst = motion(xEst, u);
     [G,Fx]=JacobianF(xEst,u);
     PEst = G'*PEst*G + Fx'*R*Fx;
-
-    %Update
-    for iz=1:length(z(:,1))
-         [PAug, xAug]=Augmented_data_Multicom(z(iz,:),xEst,PEst,LM_I);
-%         zl=CalcRSPosiFromZ(xEst,z(iz,:),LM_I);
-%         xAug=[xEst;zl];
-%         PAug=[PEst zeros(length(xEst),LMSize);
-%               zeros(LMSize,length(xEst)) initP];
-          
-        mdist=[];
-        for il=1:GetnLM(xAug)
-            if il==GetnLM(xAug)
-                mdist=[mdist alpha];
-            else
-                lm=xAug(4+2*(il-1):5+2*(il-1));
-                [y,S,H]=CalcInno_Multicom(lm,xAug,PAug,z(iz,1:2),il,LM_I);
-                %mdistance=y'*inv(S)*y;
-                %disp(mdistance);
-                mdist=[mdist y'*inv(S)*y];
-            end
-        end
-        [C,I]=min(mdist);
-       
-        if I==GetnLM(xAug)
-            %disp(I);
-            xEst=xAug;
-            PEst=PAug;
-        end
+    z=[];
+    if (time_ob >= 1)
         
-            lm=xEst(4+2*(I-1):5+2*(I-1));
-            [y,S,H]=CalcInno_Multicom(lm,xEst,PEst,z(iz,1:2),I,LM_I);
-            K = PEst*H'*inv(S);
-            xEst = xEst + K*y;
-            PEst = (eye(size(xEst,1)) - K*H)*PEst;
+        time_ob = 0;
+        [z]=Observation_MultiCom(xTrue,u,LM,LM_I);
+
+        %--------EKF SLAM----------
+    %     % Predict
+    %     xEst = motion(xEst, u);
+    %     [G,Fx]=JacobianF(xEst,u);
+    %     PEst = G'*PEst*G + Fx'*R*Fx;
+
+        %Update
+        for iz=1:length(z(:,1))
+             [PAug, xAug]=Augmented_data_Multicom(z(iz,:),xEst,PEst,LM_I);
+    %         zl=CalcRSPosiFromZ(xEst,z(iz,:),LM_I); 
+    %         xAug=[xEst;zl];
+    %         PAug=[PEst zeros(length(xEst),LMSize);
+    %               zeros(LMSize,length(xEst)) initP];
+
+            mdist=[];
+            for il=1:GetnLM(xAug)
+                if il==GetnLM(xAug)
+                    mdist=[mdist alpha];
+                else
+                    lm=xAug(4+2*(il-1):5+2*(il-1));
+                    [y,S,H]=CalcInno_Multicom(lm,xAug,PAug,z(iz,1:2),il,LM_I);
+                    %mdistance=y'*inv(S)*y;
+                    %disp(mdistance);
+                    mdist=[mdist y'*inv(S)*y];
+                end
+            end
+            [C,I]=min(mdist);
+
+            if I==GetnLM(xAug)
+                %disp(I);
+                xEst=xAug;
+                PEst=PAug;
+            end
+
+                lm=xEst(4+2*(I-1):5+2*(I-1));
+                [y,S,H]=CalcInno_Multicom(lm,xEst,PEst,z(iz,1:2),I,LM_I);
+                K = PEst*H'*inv(S);
+                xEst = xEst + K*y;
+                PEst = (eye(size(xEst,1)) - K*H)*PEst;
+                xEst(3)=PI2PI(xEst(3));
+                %result.xEst_up = [result.xEst_up; xEst(1:3)'];
+        end
     end
-    
     xEst(3)=PI2PI(xEst(3));
      
     result.xTrue=[result.xTrue; xTrue'];
@@ -112,7 +126,8 @@ for i = 1:nSteps
    
     
 end
-DrawGraph(result,LM);
+DrawGraph(result,LM,xEst);
+DrawGraph_no(result, LM,xEst);
 %csvwrite('mdist.csv', result.mdist);
 %csvwrite('u.csv', result.u);
 %csvwrite('z.csv', result.z);
@@ -162,24 +177,50 @@ grid on;
 
 drawnow;
 end
-function DrawGraph(result,LM)
+function DrawGraph(result,LM,xEst)
 figure(2);
 hold off;
 x=[ result.xTrue(:,1:2) result.xEst(:,1:2)];
 %x=[result.xTrue(:,1) result.xTrue(:,2)];
 set(gca, 'fontsize', 16, 'fontname', 'times');
-plot(x(:,1), x(:,2),'-b','linewidth', 4); hold on;
+plot(x(:,1), x(:,2),'-b','linewidth', 3); hold on;
+%plot(result.xTrue(:,1), result.xTrue(:,2),'-b','linewidth', 4);hold on;
 plot(result.xd(:,1), result.xd(:,2),'-k','linewidth', 2); hold on;
-plot(x(:,3), x(:,4),'-r','linewidth', 4); hold on;
+plot(x(:,3), x(:,4),'-r','linewidth', 3); hold on;
+%plot(result.xEst_up(:,1), result.xEst_up(:,2),'-r','linewidth', 4); hold on;
 plot(LM(:,1),LM(:,2),'pk','MarkerSize',10);hold on;
-% for il=1:GetnLM(xEst)
-%     plot(xEst(4+2*(il-1)),xEst(5+2*(il-1)),'Diamond');hold on;
-% end
+for il=1:GetnLM(xEst)
+    plot(xEst(4+2*(il-1)),xEst(5+2*(il-1)),'Diamond');hold on;
+end
  
-title('EKF SLAM Result', 'fontsize', 16, 'fontname', 'times');
+%title('EKF SLAM Result', 'fontsize', 16, 'fontname', 'times');
 xlabel('X (m)', 'fontsize', 16, 'fontname', 'times');
 ylabel('Y (m)', 'fontsize', 16, 'fontname', 'times');
 legend('Ground Truth','Dead Reckoning','EKF SLAM','True LM','Estimated LM');
+grid on;
+axis equal;
+
+end
+function DrawGraph_no(result,LM,xEst)
+figure(3);
+hold off;
+x=[ result.xTrue(:,1:2) result.xEst(:,1:2)];
+%x=[result.xTrue(:,1) result.xTrue(:,2)];
+set(gca, 'fontsize', 16, 'fontname', 'times');
+plot(x(:,1), x(:,2),'-b','linewidth', 3); hold on;
+%plot(result.xTrue(:,1), result.xTrue(:,2),'-b','linewidth', 4);hold on;
+plot(result.xd(:,1), result.xd(:,2),'-k','linewidth', 2); hold on;
+plot(x(:,3), x(:,4),'-r','linewidth', 3); hold on;
+%plot(result.xEst_up(:,1), result.xEst_up(:,2),'-r','linewidth', 4); hold on;
+plot(LM(:,1),LM(:,2),'pk','MarkerSize',10);hold on;
+for il=1:GetnLM(xEst)
+    plot(xEst(4+2*(il-1)),xEst(5+2*(il-1)),'Diamond');hold on;
+end
+ 
+%title('EKF SLAM Result', 'fontsize', 16, 'fontname', 'times');
+xlabel('X (m)', 'fontsize', 16, 'fontname', 'times');
+ylabel('Y (m)', 'fontsize', 16, 'fontname', 'times');
+
 grid on;
 axis equal;
 
