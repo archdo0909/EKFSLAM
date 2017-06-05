@@ -3,7 +3,7 @@ clear all;
 clc
 
 time = 0;
-endtime = 90;
+endtime = 24;
 global dt;
 dt = 0.1;
 nSteps = ceil((endtime - time)/dt);

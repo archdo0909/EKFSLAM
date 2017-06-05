@@ -1,5 +1,5 @@
 function [Area]=RegionofUncertainty(PEst)
-Pxy = PEst(4:5,4:5);
+Pxy = PEst(1:2,1:2);
     [eigvec, eigval]=eig(Pxy);
     
     if eigval(1,1)>=eigval(2,2)

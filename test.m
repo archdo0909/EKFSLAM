@@ -31,10 +31,14 @@ result.xTrue = [];
 result.z = []; 
 result.xd = [];
 result.uncertainty=[];
+result.time = [];
 result.PEst=[];
 result.xEst=[];
 result.mdist=[];
 result.xEst_up=[];
+result.error_robot = [];
+result.error_robot_dead = [];
+result.uncertainty=[];
 %result.PEst_up=[];
 R = diag([0.2 0.2 toradian(1)]).^2;
 global Q;     %CalcInno_Multicom, Augmented_data
@@ -47,11 +51,12 @@ global Rsigma  %Observation_Multicom in noise
 Rsigma=diag([0.1 toradian(1)]).^2;
 global Ssigma
 Ssigma = 0.1^2;
+len = 3;
 alpha = 1;
 time_ob = 0;
 for i = 1:nSteps
     
-    time = time + dt
+    time = time + dt;
     time_ob = time_ob + dt;
     
     u = control_new(time);
@@ -69,6 +74,7 @@ for i = 1:nSteps
         
         time_ob = 0;
         [z]=Observation_MultiCom(xTrue,u,LM,LM_I);
+        %[z]=Observation_multi_bearing(x,u,LM);
 
         %--------EKF SLAM----------
     %     % Predict
@@ -79,6 +85,7 @@ for i = 1:nSteps
         %Update
         for iz=1:length(z(:,1))
              [PAug, xAug]=Augmented_data_Multicom(z(iz,:),xEst,PEst,LM_I);
+             %[PAug, xAug]=Augmented_data_Multibearing(z(iz,:),xEst,PEst,LM_I,len);
     %         zl=CalcRSPosiFromZ(xEst,z(iz,:),LM_I); 
     %         xAug=[xEst;zl];
     %         PAug=[PEst zeros(length(xEst),LMSize);
@@ -114,7 +121,19 @@ for i = 1:nSteps
         end
     end
     xEst(3)=PI2PI(xEst(3));
-     
+    
+    d_robot = xTrue(1:2)-xEst(1:2);
+    d_robot_error = d_robot'*d_robot;
+    d_robot_dead = xTrue(1:2)-xd(1:2);
+    d_robot_deaderror= d_robot_dead'*d_robot_dead;
+    error_robot = sqrt(d_robot_error);
+    error_robot_dead = sqrt(d_robot_deaderror);
+    result.error_robot = [result.error_robot; error_robot];
+    result.error_robot_dead = [result.error_robot_dead; error_robot_dead];
+    [Area]=RegionofUncertainty(PEst);
+    result.uncertainty=[result.uncertainty; Area];
+    
+    result.time = [result.time; time];
     result.xTrue=[result.xTrue; xTrue'];
     result.xd=[result.xd; xd'];
     result.u = [result.u; u'];
@@ -122,12 +141,13 @@ for i = 1:nSteps
     result.xEst=[result.xEst; xEst(1:3)'];
     
     %Animation(result,xTrue,LM,z,xEst,zl);
-    Animation2(result,LM,xEst,PEst);
+    Animation2(result,LM,xEst,PEst,time);
    
     
 end
-DrawGraph(result,LM,xEst);
+DrawGraph(result,LM,xEst,endtime);
 DrawGraph_no(result, LM,xEst);
+Total_d=Cal_error_LM(xEst, LM)
 %csvwrite('mdist.csv', result.mdist);
 %csvwrite('u.csv', result.u);
 %csvwrite('z.csv', result.z);
@@ -160,13 +180,14 @@ grid on;
 
 drawnow;
 end
-function Animation2(result,LM,xEst,PEst)
+function Animation2(result,LM,xEst,PEst,time)
+figure(1);
 hold off;
 plot(result.xTrue(:,1),result.xTrue(:,2),'.b');hold on;
 ShowErrorEllipse(xEst,PEst);
 for il=1:GetnLM(xEst)
     plot(xEst(4+2*(il-1)),xEst(5+2*(il-1)),'Diamond');hold on;
-    ShowErrorEllipse_LM(xEst, PEst(4+2*(il-1):5+2*(il-1),4+2*(il-1):5+2*(il-1)),il);
+    %ShowErrorEllipse_LM(xEst, PEst(4+2*(il-1):5+2*(il-1),4+2*(il-1):5+2*(il-1)),il);
 end
  
 plot(LM(:,1),LM(:,2),'pk','MarkerSize',10);hold on;
@@ -174,10 +195,23 @@ plot(result.xd(:,1),result.xd(:,2),'.k');hold on;
 plot(result.xEst(:,1),result.xEst(:,2),'.r');hold on;
 axis equal;
 grid on;
+    
+    if(time >= 0.2 && time <= 0.3)
+        saveas(figure(1), 'figure_0.fig')
+    elseif (time >= 6 && time <= 6.1)
+        saveas(figure(1), 'figure_6.fig')
+    elseif (time >= 12 && time <= 12.1)
+        saveas(figure(1), 'figure_12.fig')
+    elseif (time >= 18 && time <= 18.1)
+        saveas(figure(1), 'figure_18.fig')
+    elseif (time >= 23.9 && time <= 24)
+        saveas(figure(1), 'figure_24.fig')
+    end
+    
 
 drawnow;
 end
-function DrawGraph(result,LM,xEst)
+function DrawGraph(result,LM,xEst,endtime)
 figure(2);
 hold off;
 x=[ result.xTrue(:,1:2) result.xEst(:,1:2)];
@@ -199,6 +233,28 @@ ylabel('Y (m)', 'fontsize', 16, 'fontname', 'times');
 legend('Ground Truth','Dead Reckoning','EKF SLAM','True LM','Estimated LM');
 grid on;
 axis equal;
+
+figure(6);
+set(gca, 'fontsize', 16, 'fontname', 'times');
+plot(result.time(:), result.error_robot(:),'-r', 'linewidth', 2); hold on;
+plot(result.time(:), result.error_robot_dead(:),'-g','linewidth', 2); hold on;
+title('Error on the estimates of robot position','fontsize', 16, 'fontname', 'times');
+xlabel('Iteration','fontsize', 16, 'fontname', 'times');
+ylabel('Error (m)', 'fontsize', 16, 'fontname', 'times');
+legend('SLAM','Dead reckoning','fontsize');
+grid on;
+axis equal;
+
+figure(7);
+%set(gca, 'fontsize', 16, 'fontname', 'times');
+plot(result.time(:),result.uncertainty(:),'-r','linewidth',1); hold on;
+set(gca, 'XTick', [1:1:endtime]);
+title('Uncertainty regions of robot position','fontsize', 16, 'fontname', 'times');
+xlabel('time (sec)','fontsize', 16, 'fontname', 'times');
+ylabel('Uncertainty (m^2)', 'fontsize', 16, 'fontname', 'times');
+grid on;
+axis equal;
+
 
 end
 function DrawGraph_no(result,LM,xEst)
@@ -224,6 +280,13 @@ ylabel('Y (m)', 'fontsize', 16, 'fontname', 'times');
 grid on;
 axis equal;
 
+end
+function Total_d=Cal_error_LM(xEst, LM)
+    Total_d=0;
+    for il = 1:GetnLM(xEst)
+        Total_d = Total_d + sqrt( (xEst(4+2*(il-1)) - LM(il,1))^2 + (xEst(5+2*(il-1))- LM(il,2))^2  );
+    end
+    
 end
 
 
